@@ -1,8 +1,10 @@
 hanoi:\
-	hanoi/hanoi_solver
+	hanoi/9hanoi_solver\
+  hanoi/15hanoi_solver\
 
 CLEAN+=\
-	hanoi/hanoi_solver\
+	hanoi/9hanoi_solver\
+  hanoi/15hanoi_solver\
 
 EVERYTHING+=hanoi
 
@@ -12,7 +14,7 @@ hanoiSRC=\
 CLEAN+=$(hanoiSRC:.cc=.o)
 
 
-hanoi/hanoi_solver:\
+hanoi/%hanoi_solver:\
 	$(hanoiSRC)\
 	hanoi/main.cc\
 	utils/utils.a\

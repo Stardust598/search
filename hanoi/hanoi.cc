@@ -8,30 +8,47 @@ const Hanoi::Oper Hanoi::Nop;
 
 Hanoi::Hanoi(FILE *in) {
 	unsigned int Ndisks;
+  unsigned int n1, n2, n3;
 
 	if (fscanf(in, "%u\n", &Ndisks) != 1)
 		fatalx(errno, "Failed to read the number of disks");
 
+    fscanf(in, "%u\n", &n1);
+    fscanf(in, "%u\n", &n2);
+    fscanf(in, "%u\n", &n3);
+
+    unsigned int atower[n1];
+    unsigned int btower[n2];
+    unsigned int ctower[n3];
+
     if (!fscanf(in, "Stack A\n")) {
 	  fatal("Missing Stack A header line in input file.\n");
 	}
+    for (int i=0; i<n1; i++){
+      fscanf(in, "%u\n", &atower[i]);
+    }
   //
-  int i=0;
-    while (!fscanf(in, "Stack B\n")) {
-      fscanf(in, "%hhu\n", &atower[i]);
-      i++;
+    if (!fscanf(in, "Stack B\n")) {
+      fatal("Missing Stack B header line in input file.\n");
     }
 
-    while (!fscanf(in, "Stack C\n")) {
-      fscanf(in, "%hhu\n", &btower[i]);
-      i++;
+    for (int i=0; i<n2; i++){
+      fscanf(in, "%u\n", &btower[i]);
+    }
+  //
+    if (!fscanf(in, "Stack C\n")) {
+      fatal("Missing Stack C header line in input file.\n");
     }
 
-    while (!fscanf(in, "Goal:\n")) {
-      fscanf(in, "%hhu\n", &ctower[i]);
-      i++;
+    for (int i=0; i<n3; i++){
+      fscanf(in, "%u\n", &ctower[i]);
     }
-//
+
+    if (!fscanf(in, "Goal:\n")) {
+      fatal("Missing Stack Goal header line in input file.\n");
+    }
+
+/*
     if (!fscanf(in, "Stack A\n")) {
         fatal("Missing Stack A goal header line in input file.\n");
         }
@@ -50,6 +67,7 @@ Hanoi::Hanoi(FILE *in) {
       fscanf(in, "%hhu\n", &cgoal[i]);
       i++;
     }
+*/
 
 for(Disk from = 0; from < Ndisks; from++){
     for(Disk to = 0; to < Ndisks; to++){
@@ -61,12 +79,12 @@ for(Disk from = 0; from < Ndisks; from++){
 // potentially create a move library here
 Hanoi::State Hanoi::initialstate() {
 	State s;
-  int* list[3]={atower, btower, ctower};
+  int* list[3]={atower, btower, ctower}; //make a list of towers to loop through
+  int l_list[3]={n1,n2,n3}; //make a list of length of towers to loop through
   for (int j=0; j<3; j++){
-  	for (int i=0; i<len(list[j]);i++){
+  	for (int i=0; i<l_list[j];i++){
       Node* node = new Node;
       node->data = i;
-      node->next = NULL;
       if (s.towers[j].head == NULL){ //if nothing, start list
         s.towers[j].head == node;
       }
@@ -76,7 +94,7 @@ Hanoi::State Hanoi::initialstate() {
           current = current->next;
         }
         current->next = node;
-        s.towers[j].lenth+=1; //add 1 to length
+        s.towers[j].length+=1; //add 1 to length
       }
     }
   }

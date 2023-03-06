@@ -43,31 +43,24 @@ public:
 			for (unsigned int i = 0; i < Ndisks; i++) {
 				if (disks[i] != o.disks[i])
 					return false;
-			}
+				}
 				return true;
-}
+			}
 
 private:
 	friend class Hanoi;
 
 	struct Node {
 		int data;
-		Node* next;
+		Node* next=NULL;
 	};
 
-	struct Pillars{
-		Node* head;
-		int length;
+	struct Pillar{
+		Node* head=NULL;
+		int length=0;
 	};
 
-
-
-	Pillars towers[ARRAY_SIZE]; //towers array
-
-	for (int i=0; i<ARRAY_SIZE; i++){
-		towers[i].head=NULL;
-		towers[i].length=0;
-	}
+	Pillar towers[ARRAY_SIZE]; //towers array
 
 	Cost h;
 	Cost d;
@@ -126,14 +119,14 @@ private:
 			int b=0;
 
 			for (int i=0;i<Ndisks-1; i++){    //Go through all possible moves
-				if (s.towers[i].head = NULL){ //check if head exsists
+				if (s.towers[i].head == NULL){ //check if head exsists
 					a=0;
 				}
 				else{
 					a=s.towers[i].head.data;
 				}
 				for (int j=0;Ndisks-1;j++){
-					if (s.towers[j].head = NULL){
+					if (s.towers[j].head == NULL){
 						b=0;
 					}
 					else{
@@ -210,9 +203,7 @@ private:
 	void dumpstate(FILE *out, const State &s) const {
 	}
 
-	Oper getmoveref(Disk from, Disk to)const{
-
-	}
-
 	Cost pathcost(const std::vector<State>&, const std::vector<Oper>&);
+private:
+	Move movelibrary[Ndisks*Ndisks]={Move()};
 };

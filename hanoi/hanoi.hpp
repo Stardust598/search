@@ -40,23 +40,41 @@ public:
 	struct State {
 
 		bool eq(const Hanoi*, const State &o) const { //Check if states are equivilent
-			for (unsigned int i = 0; i < Ndisks; i++) {
-				if (disks[i] != o.disks[i])
+			//for (unsigned int i = 0; i < Ndisks; i++) {
+				if (towers != o.towers){
 					return false;
 				}
 				return true;
 			}
 
+			void movedisk(Oper move, const Hanoi &domain)	{
+
+				 	Disk pickUp = domain.movelibrary[move].from;
+					Disk putOn = domain.movelibrary[move].to;
+					Piece* disk = towers[pickUp].head;
+
+					if (towers[pickUp].head->next){  //remove the node from stack
+						towers[pickUp].head=towers[pickUp].head->next;
+					}
+					else{
+						towers[pickUp].head=NULL;
+					}
+					towers[pickUp].length-=1;
+
+					disk->next=towers[putOn].head;
+					towers[putOn].head=disk;
+			}
+
 private:
 	friend class Hanoi;
 
-	struct Node {
+	struct Piece {
 		int data;
-		Node* next=NULL;
+		Piece* next=NULL;
 	};
 
 	struct Pillar{
-		Node* head=NULL;
+		Piece* head=NULL;
 		int length=0;
 	};
 
@@ -123,21 +141,21 @@ private:
 					a=0;
 				}
 				else{
-					a=s.towers[i].head.data;
+					a=s.towers[i].head->data;
 				}
 				for (int j=0;Ndisks-1;j++){
 					if (s.towers[j].head == NULL){
 						b=0;
 					}
 					else{
-						b=s.towers[j].head.data;
+						b=s.towers[j].head->data;
 					}
 					if(a<b){                        //if move possible
-						mvs[pos]=d.getmoveref(i,j);
+						mvs[pos]=h.getmoveref(i,j);
 						pos+=1;
 					}
 					else if (i!=j){                //else, inverse
-						mvs[pos]=d.getmoveref(j,i);
+						mvs[pos]=h.getmoveref(j,i);
 						pos+=1;
 					}
 		}
@@ -150,7 +168,7 @@ private:
 
 		// operator[] returns a specific operator.
 		Oper operator[] (unsigned int i) const {
-			return msv[i]; //Not sure what this does
+			return mvs[i]; //Not sure what this does
 		}
 	private:
 		Oper *mvs;
@@ -205,5 +223,6 @@ private:
 
 	Cost pathcost(const std::vector<State>&, const std::vector<Oper>&);
 private:
+	int init[Ndisks];
 	Move movelibrary[Ndisks*Ndisks]={Move()};
 };

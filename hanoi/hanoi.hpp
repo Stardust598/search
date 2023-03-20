@@ -14,7 +14,7 @@ public:
 
 	typedef int Cost; //The type for how to represent move costs
 	typedef int Oper;  //the type for how to represent operations
-	typedef int Disk; //the type for disks
+	typedef unsigned int Disk; //the type for disks
 
 	enum{Ndisks = NDISKS}; //how many disks was it made with
 
@@ -37,7 +37,17 @@ public:
 
 	Hanoi(FILE*);
 
+	struct Piece {
+		int data;
+		Piece* next=NULL;
+	};
+
 	struct State {
+
+		unsigned long hash (const Hanoi*) const{
+			return towers[0].length+2*towers[1].length+Ndisks*towers[2].length;
+		}
+
 
 		bool eq(const Hanoi*, const State &o) const { //Check if states are equivilent
 			//for (unsigned int i = 0; i < Ndisks; i++) {
@@ -47,31 +57,62 @@ public:
 				return true;
 			}
 
-			void movedisk(Oper move, const Hanoi &domain)	{
+			void movedisk(Oper move, const Hanoi &domain)	{ //fix- should adjust the hueristic here
 
 				 	Disk pickUp = domain.movelibrary[move].from;
 					Disk putOn = domain.movelibrary[move].to;
 					Piece* disk = towers[pickUp].head;
 
+					if (pickUP==2){
+						while(disk->next!=NULL){
+							if (disk->next->data!=disk->data+1){
+								hadj=-1; //not in place
+								break;
+							}
+							disk=disk->next;
+						}
+							if (disk->data==Ndisks){
+								hadj=1; //in place
+							}
+							else {
+								hadj=1;  //not in place
+							}
+						disk=towers[pickUp].head;
+					}
+
 					if (towers[pickUp].head->next){  //remove the node from stack
 						towers[pickUp].head=towers[pickUp].head->next;
 					}
 					else{
-						towers[pickUp].head=NULL;
+						towers[pickUp].head=NULL; //if only thing in stack, stack empty
 					}
-					towers[pickUp].length-=1;
+					towers[pickUp].length-=1; //decrease length of stack
 
-					disk->next=towers[putOn].head;
+					disk->next=towers[putOn].head; //add the node to new stack
 					towers[putOn].head=disk;
+					towers[putOn].length+=1;
+					int hadj;
+					if (putOn==2){
+						while(disk->next!=NULL){
+							if (disk->next->data!=disk->data+1){
+								hadj=1; //not in place
+								break;
+							}
+						disk=disk->next;
+						}
+						if (disk->data==Ndisks){
+							hadj=-1; //in place
+						}
+						else {
+							hadj=1;  //not in place
+						}
+					}
 			}
 
 private:
 	friend class Hanoi;
 
-	struct Piece {
-		int data;
-		Piece* next=NULL;
-	};
+
 
 	struct Pillar{
 		Piece* head=NULL;
@@ -82,6 +123,8 @@ private:
 
 	Cost h;
 	Cost d;
+
+
 
 };
 
@@ -100,6 +143,8 @@ private:
 	unsigned long hash(const PackedState&) const {
 		return -1;
 	}*/
+
+
 
 	// Get the initial state.
 	State initialstate();
@@ -219,6 +264,15 @@ private:
 //
 	// Print the state.
 	void dumpstate(FILE *out, const State &s) const {
+		for (int i=0; i < ARRAY_SIZE; i++){
+			fprintf(out, "Stack: %d", i);
+			Piece* here = s.towers[i].head;
+			for (int j=0; j<s.towers[i].length; j++){
+				fprintf(out, "%u", here->data);
+				here = here->next;
+			}
+		}
+		fprintf(out, "huristic value: %d", s.h);
 	}
 
 	Cost pathcost(const std::vector<State>&, const std::vector<Oper>&);

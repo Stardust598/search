@@ -7,19 +7,23 @@
 const Hanoi::Oper Hanoi::Nop;
 
 Hanoi::Hanoi(FILE *in) {
-	int Ndisks;
+	unsigned int Ndisks;
 
-	if (fscanf(in, "%u\n", &Ndisks) != 1)
+	if (fscanf(in, "%d\n", &Ndisks) != 1){
 		fatalx(errno, "Failed to read the number of disks");
-
-    if (!fscanf(in, "Initial:\n")) {
+}
+/*char str[100];
+	int result = fscanf(in, "Initial:");
+	fatal("%d", result);*/
+    if (fscanf(in, "Initial:\n")!=0) {
 	  fatal("Missing Initial header line in input file.\n");
 	}
-    for (int i=0; i<Ndisks; i++){
-      fscanf(in, "%d\n", &init[i]);
+    for (unsigned int i=0; i<Ndisks; i++){
+      if (fscanf(in, "%u\n", &init[i])!=1)
+        fatal("failed to read a disk value\n");
     }
 
-    if (!fscanf(in, "Goal:\n")) {
+    if (fscanf(in, "Goal:\n")!=0) {
       fatal("Missing Stack Goal header line in input file.\n");
     }
 
@@ -33,8 +37,8 @@ for(Disk from = 0; from < Ndisks; from++){ //creates a moves library
 
 Hanoi::State Hanoi::initialstate() {
 	State s;
-  for (int i=0; i<Ndisks;i++){
-    Piece* piece = new Piece;
+  for (unsigned int i=0; i<Ndisks;i++){
+    Piece* piece = new Piece();
     piece->data = i;
     if (s.towers[init[i]].head == NULL){ //if nothing, start list
       s.towers[init[i]].head = piece;
@@ -58,12 +62,12 @@ Hanoi::State Hanoi::initialstate() {
         int sum2= 0;
         while (here->next != NULL){
           tempsum+=1;
-          if (here.next.data!=here.data+1){
+          if (here->next->data!=here->data+1){
             sum2=sum2+tempsum*2;
             tempsum=0;
           }
         }
-        if (here.data!=Ndisks){
+        if (here->data!=Ndisks){
           tempsum+=1;
           sum2=sum2+tempsum*2;
         }

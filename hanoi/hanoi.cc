@@ -54,9 +54,10 @@ Hanoi::State Hanoi::initialstate() {
   }
 
       int peg3 = 0;
-      if (s.towers[0].length==0){  //calculate initial huristic value
-      }
-      else{
+      if (s.towers[2].length==0){  //calculate initial huristic value
+				//keep peg3 as 0 as nothing on this peg
+			}
+      else{ //go through and calculate huristic
         Piece* here=s.towers[2].head;
         int tempsum=0;
         int sum2= 0;

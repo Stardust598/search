@@ -62,8 +62,9 @@ public:
 				 	Disk pickUp = domain.movelibrary[move].from;
 					Disk putOn = domain.movelibrary[move].to;
 					Piece* disk = towers[pickUp].head;
+					int hadj;
 
-					if (pickUP==2){
+					if (pickUp==2){
 						while(disk->next!=NULL){
 							if (disk->next->data!=disk->data+1){
 								hadj=-1; //not in place
@@ -91,7 +92,6 @@ public:
 					disk->next=towers[putOn].head; //add the node to new stack
 					towers[putOn].head=disk;
 					towers[putOn].length+=1;
-					int hadj;
 					if (putOn==2){
 						while(disk->next!=NULL){
 							if (disk->next->data!=disk->data+1){
@@ -107,12 +107,11 @@ public:
 							hadj=1;  //not in place
 						}
 					}
+				h=h+hadj;
 			}
 
 private:
 	friend class Hanoi;
-
-
 
 	struct Pillar{
 		Piece* head=NULL;

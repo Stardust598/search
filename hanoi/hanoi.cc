@@ -27,9 +27,9 @@ Hanoi::Hanoi(FILE *in) {
       fatal("Missing Stack Goal header line in input file.\n");
     }
 
-for(Disk from = 0; from < Ndisks; from++){ //creates a moves library
-    for(Disk to = 0; to < Ndisks; to++){
-        if(from != to) movelibrary[(from)* Ndisks + to] = Move(from, to);
+for(Disk from = 0; from < ARRAY_SIZE; from++){ //creates a moves library
+    for(Disk to = 0; to < ARRAY_SIZE; to++){
+        if(from != to) movelibrary[(from)* ARRAY_SIZE + to] = Move(from, to);
         }
       }
     }
@@ -52,26 +52,27 @@ Hanoi::State Hanoi::initialstate() {
       }
     s.towers[init[i]].length+=1;
   }
-
-      int peg3 = 0;
-      if (s.towers[2].length==0){  //calculate initial huristic value
-				//keep peg3 as 0 as nothing on this peg
-			}
-      else{ //go through and calculate huristic
+      int peg3 = 0; //calculate initial huristic
+      if (s.towers[2].length!=0){ //go through and calculate huristic
         Piece* here=s.towers[2].head;
         int tempsum=0;
         int sum2= 0;
         while (here->next != NULL){
+					//fprintf(stdout, "here\n");
           tempsum+=1;
-          if (here->next->data!=here->data+1){
+          if (here->next->data!=here->data+1){ //if next not in line, add double all
             sum2=sum2+tempsum*2;
             tempsum=0;
           }
+					here=here->next;
         }
-        if (here->data!=Ndisks){
+        if (here->data!=Ndisks-1){ //if end not bottom, add double all
           tempsum+=1;
           sum2=sum2+tempsum*2;
         }
+				/*else if (tempsum==Ndisks){ //if end is bottom and all are correct
+					sum2=0;
+				}*/
         peg3=sum2;
 
       }
@@ -82,13 +83,18 @@ Hanoi::State Hanoi::initialstate() {
 
 Hanoi::Cost Hanoi::pathcost(const std::vector<State> &path, const std::vector<Oper> &ops) { //unmodified
 	State state = initialstate();
+	dumpstate(stdout, path[1]);
 	Cost cost(0);
 	for (int i = ops.size() - 1; i >= 0; i--) {
 		State copy(state);
 		Edge e(*this, copy, ops[i]);
-		assert (e.state.eq(this, path[i]));
+		//fprintf(stdout, "%d\n", e.cost);
+		//dumpstate(stdout, e.state);
+		//dumpstate(stdout, path[i]);
+		//assert (e.state.eq(this, path[i]));
 		state = e.state;
 		cost += e.cost;
+
 	}
 	assert (isgoal(state));
 	return cost;

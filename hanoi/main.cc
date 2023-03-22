@@ -1,5 +1,3 @@
-//currently just a copy of blocksworld
-
 #include "hanoi.hpp"
 #include "../search/main.hpp"
 #include <cstdio>

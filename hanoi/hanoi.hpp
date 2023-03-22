@@ -36,47 +36,56 @@ public:
 
 	Hanoi(FILE*);
 
-	struct Piece {
+	struct Piece { //the nodes in the linked lists
 		int data;
 		Piece* next=NULL;
 	};
 
 	struct State {
 
-		unsigned long hash (const Hanoi*) const{
+		unsigned long hash (const Hanoi*) const{ //simple hash function using tower lengths
 			return towers[0].length+2*towers[1].length+Ndisks*towers[2].length;
 		}
 
-		State(){}
-
-		State(const State &other){
+/* This code is trying to force the packstate to do a deep copy.
+It doesn't work propperly. To fix this domain, either fix this
+or change state representation to be array based rather than linked lists.
+		State& operator=(const State &other){
 			for (unsigned int i = 0; i < ARRAY_SIZE; i++) {
+				fprintf(stdout, "Stack %u:", i);
 				Piece* otherHead = other.towers[i].head;
 				if (otherHead==NULL){
+					towers[i].head=NULL;
+					towers[i].length=0;
 					continue;
 				}
 				Piece* head = new Piece();
 				head->data=otherHead->data;
+				fprintf(stdout, "%u\n", head->data);
 				towers[i].length=other.towers[i].length;
 				towers[i].head=head;
+				head->next=NULL;
 				otherHead=otherHead->next;
 				while (otherHead!=NULL){
 					Piece* p= new Piece();
+					p->next=NULL;
 					p->data=otherHead->data;
+					fprintf(stdout, "%u\n", p->data);
 					head->next=p;
 					head=p;
 					otherHead=otherHead->next;
 				}
 			}
+			fprintf(stdout, "towers length: %u %u %u\n", towers[0].length, towers[1].length, towers[2].length);
+			return *this;
 		}
+		*/
 
+//This equvilancy function fails because the states copy incorrectly
 		bool eq(const Hanoi*, const State &o) const { //Check if states are equivilent
 			for (unsigned int i = 0; i < ARRAY_SIZE; i++) {
 				Piece* current = towers[i].head;
 				Piece* other = o.towers[i].head;
-				/*if ((current && !other) || (other && !current)){
-					return false;
-				}*/
 				if (towers[i].length != o.towers[i].length){
 					return false;
 				}
@@ -91,65 +100,59 @@ public:
 				return true;
  		}
 
-			void movedisk(Oper move, const Hanoi &domain)	{ //fix- should adjust the hueristic here
+			void movedisk(Oper move, const Hanoi &domain)	{ //function that actually moves the disks
 
 				 	Disk pickUp = domain.movelibrary[move].from;
 					Disk putOn = domain.movelibrary[move].to;
 					assert (towers[pickUp].head!=NULL);
 					Piece* disk = towers[pickUp].head;
-					Piece* previous = towers[pickUp].head->next;
-					Piece* under = towers[putOn].head;
-					int hadj=0;
+					Piece* previous = towers[pickUp].head->next; //used to assert that move was done correctly
+					Piece* under = towers[putOn].head; //used to assert that move was done correctly
+					int hadj=0;  //heuristic adjustment
 
-					if (pickUp==2){
+					if (pickUp==2){ //if removing disk from stack 3
 						while(disk->next!=NULL){
 							if (disk->next->data!=disk->data+1){
-								//fprintf(stdout, "one");
 								hadj=-1; //was not in place
 								break;
 							}
 							disk=disk->next;
 						}
-						//fprintf(stdout, "disk %d\n", disk->data);
 							if (hadj==0 && disk->data==Ndisks-1){
 								hadj=1; //was in place
-								//fprintf(stdout, "two");
 							}
 							else {
 								hadj=-1;  //was not in place
-								//fprintf(stdout, "three");
 							}
-						disk=towers[pickUp].head;
+						disk=towers[pickUp].head; //reset disk back to head
 					}
 
 					towers[pickUp].head=towers[pickUp].head->next; //removes node from stack
 					disk->next=NULL;
-					towers[pickUp].length-=1; //decrease length of stack
+					towers[pickUp].length-=1; //decrease length of old stack
 
 					disk->next=towers[putOn].head; //add the node to new stack
 					towers[putOn].head=disk;
-					towers[putOn].length+=1;
-					if (putOn==2){
+					towers[putOn].length+=1; //increases length of new stack
+
+					if (putOn==2){     //if added piece to 3rd stack
 						while(disk->next!=NULL){
 							if (disk->next->data!=disk->data+1){
 								hadj=1; //not in place
-								//fprintf(stdout, "disk %d, next %d\n", disk->data, disk->next->data);
 								break;
 							}
 						disk=disk->next;
 						}
 						if (hadj==0 && disk->data==Ndisks-1){
 							hadj=-1; //in place
-							//fprintf(stdout, "two\n");
 						}
 						else {
 							hadj=1;  //not in place
-							//fprintf(stdout, "three\n");
 						}
 					}
-				h=h+hadj;
+				h=h+hadj; //adjust hueristic
 
-				assert (towers[putOn].head->next==under);
+				assert (towers[putOn].head->next==under); //check that move done correctly
 				assert (towers[pickUp].head==previous);
 			}
 
@@ -166,27 +169,9 @@ private:
 	Cost h;
 	Cost d;
 
-
-
 };
 
 	typedef State PackedState; //Packed State is the same as State
-
-	/*struct PackedState {
-
-
-		// Functions for putting a packed state
-		// into a hash table.
-		bool operator==(const PackedState &) const {
-			return false;
-		}
-	};
-
-	unsigned long hash(const PackedState&) const {
-		return -1;
-	}*/
-
-
 
 	// Get the initial state.
 	State initialstate();
@@ -228,28 +213,22 @@ private:
 					a=s.towers[i].head->data;
 
 				}
-				//fprintf(stdout, "a: %d\n", a);
 				for (int j=1;j<ARRAY_SIZE;j++){
 					if (s.towers[j].head != NULL){
 						b=s.towers[j].head->data;
 
 					}
-					//fprintf(stdout, "b: %d\n", b);
 					if(a<b){                        //if move possible
 						mvs[pos]=h.getmoveref(i,j);
-						//fprintf(stdout, "i: %d, j: %d\n", i, j);
-						//fprintf(stdout, "a<b pos: %d move: %d \n", pos, mvs[pos]);
 						pos+=1;
 					}
 					else if (i!=j){                //else, inverse
 						mvs[pos]=h.getmoveref(j,i);
-						//fprintf(stdout, "j: %d, i: %d\n", j, i);
-						//fprintf(stdout, "a>b pos: %d move: %d \n", pos, mvs[pos]);
 						pos+=1;
 					}
-					b=Ndisks;
+					b=Ndisks; //reset b
 		}
-		a=Ndisks;
+		a=Ndisks; //reset a
 	}
 }
 		// size returns the number of applicable operatiors.
@@ -259,7 +238,7 @@ private:
 
 		// operator[] returns a specific operator.
 		Oper operator[] (unsigned int i) const {
-			return mvs[i]; //Not sure what this does
+			return mvs[i];
 		}
 	private:
 		Oper *mvs;
@@ -292,9 +271,7 @@ private:
 		// modification then the destructor may not be
 		// required.
 		~Edge(void) {
-			//domain.dumpstate(stdout, state);
 				state.movedisk(revop, domain);
-			//domain.dumpstate(stdout, state);
 		}
 	};
 
@@ -310,16 +287,16 @@ private:
 		return pkd; //returns Packedstate
 	}
 //
-	// Print the state.
+	// Prints the state.
 	void dumpstate(FILE *out, const State &s) const {
 		for (int i=0; i < ARRAY_SIZE; i++){
 			fprintf(out, "Stack %d: ", i);
 			fflush(stdout);
 			Piece* here = s.towers[i].head;
 			for (int j=0; here!=NULL; j++){
-				fprintf(out, "%u ", here->data);
+				fprintf(out, "%u ", here->data); //will seg fault here due to incorrect copying
 				if (here->next==NULL){
-					fprintf(out, "was NULL");
+					fprintf(out, "end of stack");
 				}
 				fflush(stdout);
 				here = here->next;

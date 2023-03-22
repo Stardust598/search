@@ -6,15 +6,12 @@
 
 const Hanoi::Oper Hanoi::Nop;
 
-Hanoi::Hanoi(FILE *in) {
+Hanoi::Hanoi(FILE *in) { //reads in input file
 	unsigned int Ndisks;
 
 	if (fscanf(in, "%d\n", &Ndisks) != 1){
 		fatalx(errno, "Failed to read the number of disks");
 }
-/*char str[100];
-	int result = fscanf(in, "Initial:");
-	fatal("%d", result);*/
     if (fscanf(in, "Initial:\n")!=0) {
 	  fatal("Missing Initial header line in input file.\n");
 	}
@@ -58,7 +55,6 @@ Hanoi::State Hanoi::initialstate() {
         int tempsum=0;
         int sum2= 0;
         while (here->next != NULL){
-					//fprintf(stdout, "here\n");
           tempsum+=1;
           if (here->next->data!=here->data+1){ //if next not in line, add double all
             sum2=sum2+tempsum*2;
@@ -70,12 +66,10 @@ Hanoi::State Hanoi::initialstate() {
           tempsum+=1;
           sum2=sum2+tempsum*2;
         }
-				/*else if (tempsum==Ndisks){ //if end is bottom and all are correct
-					sum2=0;
-				}*/
         peg3=sum2;
 
       }
+			//heuristic is # of disks on first and 2nd stacks plus 2 points for out of place disks on third stack (none for in place)
       s.h = s.towers[0].length+s.towers[1].length+peg3;
       s.d = s.h;
   	return s;
@@ -83,15 +77,13 @@ Hanoi::State Hanoi::initialstate() {
 
 Hanoi::Cost Hanoi::pathcost(const std::vector<State> &path, const std::vector<Oper> &ops) { //unmodified
 	State state = initialstate();
-	dumpstate(stdout, path[1]);
+	//dumpstate(stdout, path[1]); //will dump initial state
 	Cost cost(0);
 	for (int i = ops.size() - 1; i >= 0; i--) {
 		State copy(state);
 		Edge e(*this, copy, ops[i]);
-		//fprintf(stdout, "%d\n", e.cost);
-		//dumpstate(stdout, e.state);
-		//dumpstate(stdout, path[i]);
-		//assert (e.state.eq(this, path[i]));
+		//dumpstate(stdout, e.state);  //will dump edge state
+		//assert (e.state.eq(this, path[i])); //This line is important, but program fails with it due to copying error
 		state = e.state;
 		cost += e.cost;
 
